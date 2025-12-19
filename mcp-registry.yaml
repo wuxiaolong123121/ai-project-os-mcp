@@ -1,0 +1,31 @@
+name: ai-project-os
+display_name: AI Project OS
+type: governance
+protocol: mcp
+description: >
+  An MCP server that enforces engineering-grade governance
+  for AI-driven software projects using a frozen 5-stage workflow,
+  guarded execution, and mandatory audit trails.
+repository: https://github.com/wuxiaolong123121/ai-project-os-mcp
+license: MIT
+
+capabilities:
+  - state-based control
+  - stage freezing
+  - guarded execution
+  - mandatory audit
+
+supported_clients:
+  - Claude
+  - Cursor
+  - Trae
+  - Local MCP Agents
+
+compliance_level: hard-enforcement
+
+keywords:
+  - mcp
+  - ai-governance
+  - software-engineering
+  - ai-coding
+  - audit
