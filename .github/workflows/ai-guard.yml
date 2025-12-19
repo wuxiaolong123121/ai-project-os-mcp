@@ -1,0 +1,30 @@
+name: AI Project OS Guard
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run stage check
+        run: python scripts/check_stage.py
+
+      - name: Run src guard
+        run: python scripts/guard_src.py
+
+      - name: Run context refresh check
+        run: python scripts/check_context_refresh.py
+
+      - name: Run S5 audit check
+        run: python scripts/check_s5_audit.py
