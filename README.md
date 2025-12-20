@@ -1,5 +1,9 @@
 # AI Project OS
 
+[![PyPI Version](https://img.shields.io/pypi/v/ai-project-os-mcp)](https://pypi.org/project/ai-project-os-mcp/)
+[![License](https://img.shields.io/pypi/l/ai-project-os-mcp)](https://pypi.org/project/ai-project-os-mcp/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/ai-project-os-mcp)](https://pypi.org/project/ai-project-os-mcp/)
+
 **AI Project Operating System**  
 Turn AI coding into real, auditable software engineering.
 
