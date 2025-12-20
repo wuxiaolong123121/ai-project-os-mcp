@@ -41,10 +41,6 @@ dev = [
 [project.scripts]
 ai-os-mcp = "ai_project_os_mcp.cli:main"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-
 [tool.black]
 line-length = 88
 target-version = ['py38']
