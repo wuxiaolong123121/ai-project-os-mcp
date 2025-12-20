@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from .events import EventType
+from .events import EventType, GovernanceEvent
 from .violation import GovernanceViolation, ViolationLevel
 
 
@@ -70,7 +70,7 @@ class TriggerEngine:
             )
         ]
     
-    def evaluate(self, event: Dict[str, Any], state: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def evaluate(self, event: GovernanceEvent, state: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Evaluate event against triggers and detect violations
         
@@ -89,41 +89,130 @@ class TriggerEngine:
             
             if self._should_trigger(trigger, event, state):
                 violation = self._create_violation(trigger, event)
-                violations.append(violation.dict())
+                violations.append(violation.model_dump())
         
         return violations
     
-    def _should_trigger(self, trigger: GovernanceTrigger, event: Dict[str, Any], state: Dict[str, Any]) -> bool:
-        """Check if a trigger should fire for the given event and state"""
+    def _should_trigger(self, trigger: GovernanceTrigger, event: GovernanceEvent, state: Dict[str, Any]) -> bool:
+        """
+        Check if a trigger should fire for the given event and state
+        
+        Args:
+            trigger: Governance trigger to check
+            event: Governance event to evaluate
+            state: Current project state
+            
+        Returns:
+            True if the trigger should fire, False otherwise
+        """
         # Check event type match
-        if trigger.when.event != event.get("event_type"):
+        if trigger.when.event != event.event_type:
             return False
         
-        # Check condition
+        # Check condition using safe structured comparison
         condition = trigger.when.condition
-        context = {**event, **state}
         
-        try:
-            # Simple condition evaluation
-            # For production, use a safer evaluator
-            return eval(condition, {}, context)
-        except Exception:
-            # If condition evaluation fails, return False to be safe
-            return False
+        # Get context from event and state
+        context = {
+            "event_type": event.event_type,
+            "actor_id": event.actor.id,
+            "actor_role": event.actor.role,
+            "actor_role_type": event.actor.source,  # Use source as role_type for now
+            **state,  # Add state to context
+            **event.payload  # Add event payload to context
+        }
+        
+        # Safe condition evaluation using structured comparison
+        return self._safe_condition_eval(condition, context)
     
-    def _create_violation(self, trigger: GovernanceTrigger, event: Dict[str, Any]) -> GovernanceViolation:
+    def _safe_condition_eval(self, condition: str, context: Dict[str, Any]) -> bool:
+        """
+        Safe condition evaluation using structured comparison
+        
+        Args:
+            condition: Condition string to evaluate (e.g., "stage != S5")
+            context: Context dictionary for evaluation
+            
+        Returns:
+            True if condition is met, False otherwise
+        """
+        # Remove whitespace
+        condition = condition.strip()
+        
+        # Split condition into parts
+        if "!=" in condition:
+            left, right = condition.split("!=")
+            operator = "!="
+        elif "==" in condition:
+            left, right = condition.split("==")
+            operator = "=="
+        elif ">" in condition:
+            left, right = condition.split(">")
+            operator = ">"
+        elif "<" in condition:
+            left, right = condition.split("<")
+            operator = "<"
+        elif ">=" in condition:
+            left, right = condition.split(">=")
+            operator = ">="
+        elif "<=" in condition:
+            left, right = condition.split("<=")
+            operator = "<="
+        else:
+            # Unknown condition format, return False to be safe
+            return False
+        
+        # Trim whitespace
+        left = left.strip()
+        right = right.strip().strip("'\"").strip()  # Remove quotes
+        
+        # Get left value from context
+        if left not in context:
+            return False
+        
+        left_value = context[left]
+        
+        # Compare values
+        if operator == "!=":
+            return left_value != right
+        elif operator == "==":
+            return left_value == right
+        elif operator == ">":
+            try:
+                return float(left_value) > float(right)
+            except (ValueError, TypeError):
+                return False
+        elif operator == "<":
+            try:
+                return float(left_value) < float(right)
+            except (ValueError, TypeError):
+                return False
+        elif operator == ">=":
+            try:
+                return float(left_value) >= float(right)
+            except (ValueError, TypeError):
+                return False
+        elif operator == "<=":
+            try:
+                return float(left_value) <= float(right)
+            except (ValueError, TypeError):
+                return False
+        
+        return False
+    
+    def _create_violation(self, trigger: GovernanceTrigger, event: GovernanceEvent) -> GovernanceViolation:
         """Create a violation object from a trigger and event"""
         return GovernanceViolation(
             level=trigger.violation,
             rule_id=trigger.id,
-            event_id=event.get("event_id"),
-            actor_id=event.get("actor", {}).get("id"),
+            event_id=event.id,
+            actor_id=event.actor.id,
             message=trigger.message
         )
     
     def get_triggers(self) -> List[Dict[str, Any]]:
         """Get list of registered triggers"""
-        return [trigger.dict() for trigger in self.triggers]
+        return [trigger.model_dump() for trigger in self.triggers]
     
     def add_trigger(self, trigger: GovernanceTrigger):
         """Add a new trigger"""

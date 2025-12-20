@@ -2,11 +2,8 @@
 freeze_stage工具 - 冻结项目到下一个阶段
 """
 
-from ai_project_os_mcp.core import RuleEngine
-from ai_project_os_mcp.core.violation import HardRefusal
-
-rule_engine = RuleEngine()
-hard_refusal = HardRefusal()
+from ai_project_os_mcp.core import GovernanceEngine
+from ai_project_os_mcp.core.events import GovernanceEvent, EventType, Actor
 
 def freeze_stage(state, payload):
     """
@@ -24,19 +21,29 @@ def freeze_stage(state, payload):
     if not target_stage:
         return {"success": False, "error": "Missing target_stage"}
     
-    # 验证阶段转换
-    is_valid, reason = rule_engine.validate_stage_transition(state["stage"], target_stage)
+    # 构造Actor
+    actor = Actor(
+        id=payload.get("actor_id", "system"),
+        role=payload.get("actor_role", "system"),
+        source=payload.get("actor_source", "system"),
+        name=payload.get("actor_name", "System")
+    )
     
-    if not is_valid:
-        return {"success": False, "error": reason}
+    # 构造GovernanceEvent
+    event = GovernanceEvent(
+        event_type=EventType.FREEZE_REQUEST,
+        actor=actor,
+        payload={
+            "target_stage": target_stage,
+            "current_stage": state.get("stage")
+        }
+    )
     
-    # 更新状态
-    new_state = state.copy()
-    new_state["stage"] = target_stage
-    new_state["frozen"] = True
+    # 调用GovernanceEngine
+    governance_engine = GovernanceEngine(".")
+    result = governance_engine.handle_event(event)
     
     return {
-        "success": True,
-        "new_stage": target_stage,
-        "new_state": new_state
+        "success": result["status"] == "PASSED",
+        "result": result
     }

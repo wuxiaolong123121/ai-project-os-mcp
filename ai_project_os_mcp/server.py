@@ -5,7 +5,7 @@ MCPServer - MCP Server Implementation
 import sys
 import json
 import asyncio
-from ai_project_os_mcp.core import StateManager, RuleEngine, HardRefusal
+from ai_project_os_mcp.core import StateManager, RuleEngine
 from ai_project_os_mcp.config import config
 
 class MCPServer:
@@ -24,7 +24,6 @@ class MCPServer:
         self.project_root = project_root
         self.state_manager = StateManager(project_root)
         self.rule_engine = RuleEngine()
-        self.hard_refusal = HardRefusal()
         self.tools = {}
         
         # Register default tools

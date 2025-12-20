@@ -4,7 +4,7 @@ Policy Engine - Policy interpreter for governance actions
 
 import yaml
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
@@ -12,6 +12,7 @@ from enum import Enum
 class ActionType(str, Enum):
     """Types of governance actions"""
     FREEZE_PROJECT = "FREEZE_PROJECT"
+    UNFREEZE_PROJECT = "UNFREEZE_PROJECT"
     REQUIRE_HUMAN_APPROVAL = "REQUIRE_HUMAN_APPROVAL"
     LOG_VIOLATION = "LOG_VIOLATION"
     SCORE_PENALTY = "SCORE_PENALTY"
@@ -22,6 +23,15 @@ class PolicyCondition(BaseModel):
     """Policy condition definition"""
     event_type: str = Field(..., description="Type of event to match")
     condition: str = Field(..., description="Condition expression to evaluate")
+
+
+class Action(BaseModel):
+    """Structured action definition with metadata"""
+    type: ActionType = Field(..., description="Action type")
+    reason: str = Field(..., description="Reason for the action")
+    violation_id: Optional[str] = Field(None, description="Associated violation ID")
+    policy_id: str = Field(..., description="Policy that triggered this action")
+    params: Dict[str, Any] = Field(default_factory=dict, description="Action parameters")
 
 
 class PolicyAction(BaseModel):
@@ -75,7 +85,7 @@ class PolicyEngine:
                     policy.level = level
                     self.policies.append(policy)
     
-    def decide(self, violations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def decide(self, violations: List[Dict[str, Any]]) -> List[Action]:
         """
         Decide actions based on violations
         
@@ -83,20 +93,31 @@ class PolicyEngine:
             violations: List of detected violations
             
         Returns:
-            List of actions to execute
+            List of structured actions to execute
+        
+        🔒 铁律：system.policy.yaml 优先级 > project.policy.yaml
         """
         actions = []
         
+        # 按优先级排序：SYSTEM 级别的策略先执行
+        sorted_policies = sorted(
+            self.policies, 
+            key=lambda p: 0 if p.level == "SYSTEM" else 1
+        )
+        
         for violation in violations:
-            for policy in self.policies:
+            for policy in sorted_policies:
                 if self._match_policy(policy, violation):
-                    for action in policy.actions:
-                        actions.append({
-                            "action": action.action.value,
-                            "params": action.params,
-                            "policy_id": policy.id,
-                            "violation_id": violation.get("id")
-                        })
+                    for policy_action in policy.actions:
+                        # 创建结构化 Action 对象
+                        action = Action(
+                            type=policy_action.action,
+                            reason=f"Policy {policy.id} matched violation",
+                            violation_id=violation.get("id"),
+                            policy_id=policy.id,
+                            params=policy_action.params
+                        )
+                        actions.append(action)
         
         return actions
     

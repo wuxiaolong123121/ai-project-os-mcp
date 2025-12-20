@@ -2,9 +2,10 @@
 Score Engine - Governance scoring with irreversible decay
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 from enum import Enum
 
+from .events import GovernanceEvent, EventType
 from .violation import ViolationLevel
 
 
@@ -38,7 +39,7 @@ class ScoreEngine:
         self.current_score = self.base_score
         self.score_history = []
     
-    def update(self, event: Dict[str, Any], violations: list, state: Dict[str, Any]) -> Dict[str, Any]:
+    def update(self, event: GovernanceEvent, violations: list, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update governance score based on event and violations
         
@@ -48,19 +49,40 @@ class ScoreEngine:
             state: Current project state
             
         Returns:
-            Updated score details
+            Updated score details with global and stage scores
         """
-        # Check if we need to reset the score (stage change)
-        if event.get("event_type") == "STAGE_CHANGE":
-            self.reset_score()
+        # Get current scores from state
+        current_score = state.get("score", {})
+        global_score = current_score.get("global", 100)
+        stage_score = current_score.get("stage", 100)
+        
+        # Check if we need to reset the stage score (stage change)
+        if event.event_type == EventType.STAGE_CHANGE:
+            stage_score = 100  # Only reset stage score, global score remains unchanged
         
         # Apply score decay for violations
+        critical_count = 0
+        major_count = 0
+        minor_count = 0
+        
         for violation in violations:
             level = ViolationLevel(violation.get("level"))
-            self.current_score += self.score_decay[level]
             
-        # Ensure score doesn't go below 0
-        self.current_score = max(0, self.current_score)
+            if level == ViolationLevel.CRITICAL:
+                # CRITICAL → global 扣分，不可恢复，不影响stage
+                global_score += self.score_decay[level]
+                critical_count += 1
+            else:
+                # MAJOR / MINOR → stage 扣分，不影响global
+                stage_score += self.score_decay[level]
+                if level == ViolationLevel.MAJOR:
+                    major_count += 1
+                else:
+                    minor_count += 1
+        
+        # Ensure scores don't go below 0
+        global_score = max(0, global_score)
+        stage_score = max(0, stage_score)
         
         # Calculate audit coverage (mock implementation)
         audit_coverage = self._calculate_audit_coverage(state)
@@ -68,18 +90,19 @@ class ScoreEngine:
         # Calculate compliance score (mock implementation)
         compliance_score = self._calculate_compliance_score(state)
         
-        # Calculate final score
+        # Calculate final score structure
         final_score = {
-            "governance_score": self.current_score,
+            "global": global_score,  # Irreversible,跨阶段
+            "stage": stage_score,    # 阶段内评分，阶段切换时重置
             "audit_coverage": audit_coverage,
             "compliance_score": compliance_score,
             "violations": {
-                "critical": len([v for v in violations if v.get("level") == ViolationLevel.CRITICAL]),
-                "major": len([v for v in violations if v.get("level") == ViolationLevel.MAJOR]),
-                "minor": len([v for v in violations if v.get("level") == ViolationLevel.MINOR])
+                "critical": critical_count,
+                "major": major_count,
+                "minor": minor_count
             },
-            "timestamp": event.get("timestamp"),
-            "event_id": event.get("event_id")
+            "timestamp": event.timestamp.isoformat(),
+            "event_id": event.id
         }
         
         # Add to history
