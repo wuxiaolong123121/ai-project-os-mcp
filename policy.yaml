@@ -1,0 +1,107 @@
+# AI Project OS Governance Policy
+# 该文件定义了 AI Project OS 的治理策略配置
+
+# 版本信息
+version: "1.0"
+
+# 治理策略
+policies:
+  # 依赖治理策略
+  dependency_governance:
+    # 依赖检查开关
+    enabled: true
+    # 最大依赖违规数
+    max_violations: 0
+    # 允许的依赖源
+    allowed_sources: ["pypi", "conda-forge"]
+  
+  # 审计策略
+  audit_policy:
+    # 审计必填字段
+    required_fields: ["sub_task_id", "layer", "files_changed", "correctness_assertion", "architecture_compliance", "reviewer"]
+    # 审计记录有效期（天）
+    retention_days: 365
+    # 自动审批开关（仅用于开发环境）
+    auto_approval: false
+  
+  # 架构合规策略
+  architecture_compliance:
+    # 架构检查开关
+    enabled: true
+    # 最大架构违规数
+    max_violations: 0
+    # 允许的层依赖
+    allowed_layer_dependencies:
+      core: []
+      tools: ["core"]
+      adapters: ["core", "tools"]
+      server: ["core", "tools", "adapters"]
+  
+  # 测试策略
+  testing_policy:
+    # 测试覆盖率要求
+    coverage_requirement: 80
+    # 强制测试开关
+    required: true
+    # 允许跳过测试的场景
+    skip_allowed: ["documentation_only", "dependency_update"]
+  
+  # 安全策略
+  security_policy:
+    # 代码扫描开关
+    code_scanning: true
+    # 敏感数据检测
+    sensitive_data_detection: true
+    # 依赖漏洞检查
+    dependency_vulnerability_check: true
+  
+  # 阶段管理策略
+  stage_management:
+    # 阶段推进需要人工批准
+    require_approval_for_advance: true
+    # 允许的阶段转换
+    allowed_transitions:
+      S1: ["S2"]
+      S2: ["S3"]
+      S3: ["S4"]
+      S4: ["S5"]
+      S5: ["S1"]
+
+# 环境特定配置
+environments:
+  # 开发环境配置
+  development:
+    policies:
+      audit_policy:
+        auto_approval: true
+      testing_policy:
+        required: false
+  
+  # 生产环境配置
+  production:
+    policies:
+      dependency_governance:
+        max_violations: 0
+      audit_policy:
+        auto_approval: false
+      testing_policy:
+        required: true
+        coverage_requirement: 90
+
+# 权限控制
+permissions:
+  # 允许修改的策略
+  allowed_modifications:
+    - "dependency_governance.max_violations"
+    - "dependency_governance.allowed_sources"
+    - "audit_policy.retention_days"
+    - "testing_policy.coverage_requirement"
+    - "testing_policy.skip_allowed"
+  
+  # 禁止修改的策略
+  prohibited_modifications:
+    - "version"
+    - "policies.*.enabled"
+    - "policies.architecture_compliance.allowed_layer_dependencies"
+    - "policies.stage_management.allowed_transitions"
+    - "permissions"

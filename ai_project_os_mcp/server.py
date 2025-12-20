@@ -30,7 +30,9 @@ class MCPServer:
         # Register default tools
         from ai_project_os_mcp.tools import get_stage, freeze_stage, guard_src, submit_audit
         from ai_project_os_mcp.tools.context_tools import read_architecture, analyze_dependencies
-        from ai_project_os_mcp.tools.verification_tools import run_tests
+        from ai_project_os_mcp.tools.verification_tools import run_tests, verify_audit_integrity
+        from ai_project_os_mcp.tools.export_audit import export_audit
+        from ai_project_os_mcp.tools.dashboard_tools import get_stats, cli_dashboard
         
         self.register_tool(get_stage)
         self.register_tool(freeze_stage)
@@ -39,6 +41,10 @@ class MCPServer:
         self.register_tool(read_architecture)
         self.register_tool(analyze_dependencies)
         self.register_tool(run_tests)
+        self.register_tool(verify_audit_integrity)
+        self.register_tool(export_audit)
+        self.register_tool(get_stats)
+        self.register_tool(cli_dashboard)
     
     def register_tool(self, tool_func, tool_name=None):
         """
@@ -159,6 +165,41 @@ class MCPServer:
         @app.get("/tools")
         async def list_tools():
             return {"tools": self.get_registered_tools()}
+        
+        @app.get("/api/stats")
+        async def get_stats():
+            """
+            获取项目统计信息
+            """
+            # 加载当前状态
+            state = self.state_manager.load_state()
+            
+            # 统计审计记录数量
+            import os
+            import re
+            audit_count = 0
+            audit_file = os.path.join(self.project_root, "docs", "S5_audit.md")
+            if os.path.exists(audit_file):
+                with open(audit_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                audit_count = len(re.findall(r"## Sub-task:", content))
+            
+            # 分析依赖情况
+            dependencies_result = self.handle_request("analyze_dependencies", {})
+            dependency_violations = len(dependencies_result.get("violations", []))
+            
+            # 构建统计信息
+            stats = {
+                "stage": state.get("stage", "unknown"),
+                "version": state.get("version", "unknown"),
+                "last_updated": state.get("last_updated", "unknown"),
+                "audit_count": audit_count,
+                "dependency_violations": dependency_violations,
+                "registered_tools": len(self.tools),
+                "project_root": self.project_root
+            }
+            
+            return stats
 
         print(f"Starting MCP Server (HTTP) at http://{host}:{port}")
         uvicorn.run(app, host=host, port=port)

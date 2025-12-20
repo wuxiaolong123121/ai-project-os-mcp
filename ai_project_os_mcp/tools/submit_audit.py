@@ -3,10 +3,34 @@ submit_audit工具 - 提交S5审计记录
 """
 
 import os
+import subprocess
+from datetime import datetime
 from ai_project_os_mcp.core import RuleEngine
 from ai_project_os_mcp.config import config
+from ai_project_os_mcp.tools.audit_security import AuditSecurity
 
 rule_engine = RuleEngine()
+
+def get_git_commit_hash():
+    """
+    获取当前 Git Commit Hash
+    
+    Returns:
+        str: 当前 Git Commit Hash，如果获取失败则返回空字符串
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            cwd=config.project_root
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        else:
+            return ""
+    except Exception:
+        return ""
 
 def submit_audit(state, payload):
     """
@@ -42,6 +66,9 @@ def submit_audit(state, payload):
             pass
             # missing_files.append(file_path)
     
+    # 获取当前 Git Commit Hash
+    commit_hash = get_git_commit_hash()
+    
     # 创建或更新审计文件
     audit_file = os.path.join(config.project_root, "docs", "S5_audit.md")
     
@@ -61,8 +88,15 @@ def submit_audit(state, payload):
   - {'✅ No violation of S3' if payload['architecture_compliance'] else '❌ Architecture violation'}
 - Reviewer:
   - {payload['reviewer']}
+- Commit Hash: {commit_hash}
+- Approval:
+  - ReviewerType: Human
+  - ReviewerId: {payload['reviewer']}
 - Status: PASSED
 """
+    
+    # 为审计记录添加哈希值
+    audit_record = AuditSecurity.add_hash_to_record(audit_record)
     
     # 写入审计记录
     try:
@@ -75,6 +109,6 @@ def submit_audit(state, payload):
         with open(audit_file, "a", encoding="utf-8") as f:
             f.write(audit_record)
         
-        return {"status": "PASSED", "message": "Audit submitted successfully", "audit_file": audit_file}
+        return {"status": "PASSED", "message": "Audit submitted successfully", "audit_file": audit_file, "commit_hash": commit_hash}
     except Exception as e:
         return {"status": "FAILED", "reason": f"Error writing audit: {str(e)}"}

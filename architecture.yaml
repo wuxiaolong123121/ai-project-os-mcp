@@ -1,0 +1,41 @@
+# Architecture Definition for AI Project OS
+# This file defines the allowed layers and their dependencies
+
+version: "1.0"
+
+# Define architecture layers with dependencies
+layers:
+  - name: "core"
+    description: "Core business logic and models"
+    allowed_dependencies: []  # Core has no dependencies on other layers
+  
+  - name: "tools"
+    description: "Utility tools and helpers"
+    allowed_dependencies: ["core"]  # Tools can depend on core
+  
+  - name: "adapters"
+    description: "External service adapters"
+    allowed_dependencies: ["core", "tools"]  # Adapters can depend on core and tools
+  
+  - name: "server"
+    description: "API server and entry points"
+    allowed_dependencies: ["core", "tools", "adapters"]  # Server can depend on all layers
+
+# Define module structure
+modules:
+  - name: "ai_project_os_mcp"
+    layers:
+      - "core"
+      - "tools"
+      - "adapters"
+      - "server"
+
+# Additional rules
+rules:
+  - name: "no_circular_dependencies"
+    description: "No circular dependencies allowed between layers"
+    enabled: true
+  
+  - name: "layer_dependency_enforcement"
+    description: "Enforce layer dependencies according to the defined rules"
+    enabled: true
