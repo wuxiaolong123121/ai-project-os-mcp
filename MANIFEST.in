@@ -1,5 +1,4 @@
 include README.md
 include LICENSE
-include system_contract.md
 recursive-include ai_project_os_mcp *.py
 recursive-include docs *
