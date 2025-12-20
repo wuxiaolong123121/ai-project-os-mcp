@@ -1,0 +1,144 @@
+"""
+Policy Engine - Policy interpreter for governance actions
+"""
+
+import yaml
+import os
+from typing import List, Dict, Any
+from pydantic import BaseModel, Field
+from enum import Enum
+
+
+class ActionType(str, Enum):
+    """Types of governance actions"""
+    FREEZE_PROJECT = "FREEZE_PROJECT"
+    REQUIRE_HUMAN_APPROVAL = "REQUIRE_HUMAN_APPROVAL"
+    LOG_VIOLATION = "LOG_VIOLATION"
+    SCORE_PENALTY = "SCORE_PENALTY"
+    ALLOW = "ALLOW"
+
+
+class PolicyCondition(BaseModel):
+    """Policy condition definition"""
+    event_type: str = Field(..., description="Type of event to match")
+    condition: str = Field(..., description="Condition expression to evaluate")
+
+
+class PolicyAction(BaseModel):
+    """Policy action definition"""
+    action: ActionType = Field(..., description="Action to take")
+    params: Dict[str, Any] = Field(default_factory=dict, description="Action parameters")
+
+
+class GovernancePolicy(BaseModel):
+    """Governance policy definition"""
+    id: str = Field(..., description="Unique policy ID")
+    match: Dict[str, Any] = Field(..., description="Conditions to match")
+    actions: List[PolicyAction] = Field(..., description="Actions to take when matched")
+    level: str = Field(default="PROJECT", description="Policy level: SYSTEM or PROJECT")
+    enabled: bool = Field(default=True, description="Whether the policy is enabled")
+
+
+class PolicyEngine:
+    """
+    Policy Engine - Interprets governance policies and decides actions
+    
+    This is a private module - do not use directly outside governance_engine.py
+    """
+    
+    def __init__(self, policies_dir: str = "policies"):
+        self.policies_dir = policies_dir
+        self.policies = []
+        self.load_policies()
+    
+    def load_policies(self):
+        """Load policies from YAML files"""
+        self.policies = []
+        
+        # Load system policies first (highest priority, cannot be modified)
+        system_policy_path = os.path.join(self.policies_dir, "system.policy.yaml")
+        if os.path.exists(system_policy_path):
+            self._load_policy_file(system_policy_path, level="SYSTEM")
+        
+        # Load project policies (configurable)
+        project_policy_path = os.path.join(self.policies_dir, "project.policy.yaml")
+        if os.path.exists(project_policy_path):
+            self._load_policy_file(project_policy_path, level="PROJECT")
+    
+    def _load_policy_file(self, file_path: str, level: str):
+        """Load a single policy file"""
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+            if "policies" in data:
+                for policy_data in data["policies"]:
+                    policy = GovernancePolicy(**policy_data)
+                    policy.level = level
+                    self.policies.append(policy)
+    
+    def decide(self, violations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Decide actions based on violations
+        
+        Args:
+            violations: List of detected violations
+            
+        Returns:
+            List of actions to execute
+        """
+        actions = []
+        
+        for violation in violations:
+            for policy in self.policies:
+                if self._match_policy(policy, violation):
+                    for action in policy.actions:
+                        actions.append({
+                            "action": action.action.value,
+                            "params": action.params,
+                            "policy_id": policy.id,
+                            "violation_id": violation.get("id")
+                        })
+        
+        return actions
+    
+    def _match_policy(self, policy: GovernancePolicy, violation: Dict[str, Any]) -> bool:
+        """Match a policy against a violation"""
+        if not policy.enabled:
+            return False
+        
+        match_conditions = policy.match
+        
+        # Check event type match
+        if "event_type" in match_conditions:
+            if violation.get("event_type") != match_conditions["event_type"]:
+                return False
+        
+        # Check violation level match
+        if "level" in match_conditions:
+            if violation.get("level") != match_conditions["level"]:
+                return False
+        
+        # Check other conditions
+        if "condition" in match_conditions:
+            # Simple condition evaluation (in production, use a safer evaluator)
+            # For now, just support basic comparisons
+            condition = match_conditions["condition"]
+            if not self._evaluate_condition(condition, violation):
+                return False
+        
+        return True
+    
+    def _evaluate_condition(self, condition: str, context: Dict[str, Any]) -> bool:
+        """Evaluate a condition against context"""
+        try:
+            # Simple evaluation for basic expressions
+            # Example: "stage != 'S5'"
+            # For production, use a safer evaluator like ast.literal_eval
+            # or a dedicated expression engine
+            return eval(condition, {}, context)
+        except Exception:
+            # If condition evaluation fails, return False to be safe
+            return False
+    
+    def get_active_policies(self) -> List[Dict[str, Any]]:
+        """Get list of active policies"""
+        return [policy.dict() for policy in self.policies if policy.enabled]

@@ -7,6 +7,17 @@
 **AI Project Operating System**  
 Turn AI coding into real, auditable software engineering.
 
+## Status
+
+⚠️ AI Project OS v2.5 is currently in **Spec-Frozen / Implementation-in-Progress** state.
+
+- Architecture and module design are frozen
+- Core governance engine implementation is ongoing
+- APIs, modules, and governance behaviors may change until v2.5.0 release
+- Not yet suitable for production use
+
+For stable v1.x version, please check the v1 branch.
+
 ## What is this?
 
 AI Project OS is an engineering-grade operating system for AI-driven software projects.
@@ -85,9 +96,7 @@ No exception.
 - Teams tired of AI-generated mess
 - Anyone who wants AI to behave like a real engineer
 
-## Status
 
-**v1.0 — Engineering Governance Stable**
 
 ## License
 

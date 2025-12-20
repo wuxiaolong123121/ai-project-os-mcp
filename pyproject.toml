@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-project-os-mcp"
-version = "1.0.2"
+version = "1.0.3"
 description = "Enterprise-grade AI engineering governance MCP server"
 readme = "README.md"
 authors = [
@@ -12,7 +12,7 @@ authors = [
 ]
 license = {text = "MIT"}
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Code Generators"
 ]
 requires-python = ">=3.8"
 dependencies = [
@@ -40,6 +41,12 @@ dev = [
 
 [project.scripts]
 ai-os-mcp = "ai_project_os_mcp.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/wuxiaolong123121/ai-project-os-mcp"
+Source = "https://github.com/wuxiaolong123121/ai-project-os-mcp"
+"Bug Tracker" = "https://github.com/wuxiaolong123121/ai-project-os-mcp/issues"
+Documentation = "https://github.com/wuxiaolong123121/ai-project-os-mcp#readme"
 
 [tool.black]
 line-length = 88

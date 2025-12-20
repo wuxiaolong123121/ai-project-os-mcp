@@ -1,0 +1,52 @@
+# AI Project OS v2.5 - System Policies
+# These policies are SYSTEM LEVEL and CANNOT be modified by project users
+# They enforce the core governance principles
+
+policies:
+  - id: code_outside_s5
+    match:
+      event_type: CODE_GENERATION
+      condition: stage != 'S5'
+    actions:
+      - action: FREEZE_PROJECT
+        params: { reason: "Code generation outside S5 stage is prohibited" }
+      - action: LOG_VIOLATION
+      - action: SCORE_PENALTY
+        params: { penalty: 30 }
+    level: SYSTEM
+    enabled: true
+
+  - id: audit_required_missing
+    match:
+      event_type: AUDIT_MISSING
+      condition: true
+    actions:
+      - action: REQUIRE_HUMAN_APPROVAL
+      - action: LOG_VIOLATION
+      - action: SCORE_PENALTY
+        params: { penalty: 10 }
+    level: SYSTEM
+    enabled: true
+
+  - id: arch_violation_detected
+    match:
+      event_type: ARCH_VIOLATION
+      condition: true
+    actions:
+      - action: LOG_VIOLATION
+      - action: SCORE_PENALTY
+        params: { penalty: 5 }
+    level: SYSTEM
+    enabled: true
+
+  - id: policy_violation
+    match:
+      event_type: POLICY_CHANGE
+      condition: level == 'SYSTEM'
+    actions:
+      - action: FREEZE_PROJECT
+        params: { reason: "System policy modification is prohibited" }
+      - action: LOG_VIOLATION
+      - action: NOTIFY_ADMIN
+    level: SYSTEM
+    enabled: true
