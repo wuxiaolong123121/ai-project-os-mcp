@@ -89,6 +89,83 @@ No exception.
 
 MIT License
 
+## Quick Start
+
+### Installation
+
+```bash
+pip install ai-project-os-mcp
+```
+
+### Usage
+
+1. **Initialize a new project**:
+   ```bash
+   ai-project-os init my-project
+   cd my-project
+   ```
+
+2. **Start with S1 Scope stage**:
+   ```bash
+   ai-project-os s1
+   ```
+
+3. **Follow the 5S workflow**:
+   ```bash
+   # After completing S1, move to S2
+   ai-project-os s2
+   
+   # Then S3, S4, and finally S5
+   ai-project-os s3
+   ai-project-os s4
+   ai-project-os s5
+   ```
+
+4. **Check project status**:
+   ```bash
+   ai-project-os status
+   ```
+
+### For Non-Technical Users
+
+If you don't want to use the command line, check out our [Zero-Code Guide](docs/example-no-code.md) to use AI Project OS with just your AI tool.
+
+## MCP Server Runtime Modes
+
+| Mode | Usage | Security Features |
+|------|-------|------------------|
+| STDIO | Claude / Cursor / Trae | Lightweight, for development |
+| HTTP | Dashboard / Enterprise | Supports authentication, for production |
+
+## Core Principle
+
+> **拒绝违规执行**
+> **比勉强完成任务更正确**
+
+AI Project OS believes that refusing to execute violations is more correct than勉强 completing tasks.
+
+## Version Semantics
+
+We follow **Semantic Versioning**:
+
+- **MAJOR (x.0.0)**: Governance model or MCP protocol changes
+- **MINOR (1.x.0)**: New governance capabilities, backward compatible
+- **PATCH (1.0.x)**: Bug fixes, documentation, or non-behavioral changes
+
+## Release & Rollback Policy
+
+- **Release**: Git tags trigger GitHub Actions for automatic PyPI publishing
+- **Rollback**: Never delete published versions, only release fix versions (e.g., v1.0.1)
+
+## Enterprise Edition Roadmap
+
+The following capabilities are reserved for future enterprise editions:
+
+- Multi-project isolation
+- Centralized audit logging
+- Private MCP Registry
+- SSO / RBAC support
+
 ## Philosophy
 
 > AI should not be creative about structure.  

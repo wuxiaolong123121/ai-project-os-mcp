@@ -9,7 +9,7 @@ from ai_project_os_mcp import tools
 from ai_project_os_mcp import core
 from ai_project_os_mcp import adapters
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 __author__ = "AI Project OS"
 __license__ = "MIT"
 
