@@ -1,6 +1,9 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ai_project_os_mcp", "ai_project_os_mcp.*"]
 
 [project]
 name = "ai-project-os-mcp"
