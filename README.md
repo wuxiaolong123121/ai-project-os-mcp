@@ -7,6 +7,47 @@
 **AI Project Operating System**  
 Turn AI coding into real, auditable software engineering.
 
+## Quick Start
+
+### Installation
+
+```bash
+pip install ai-project-os-mcp
+```
+
+### Usage
+
+1. **Initialize a new project**:
+   ```bash
+   ai-project-os init my-project
+   cd my-project
+   ```
+
+2. **Start with S1 Scope stage**:
+   ```bash
+   ai-project-os s1
+   ```
+
+3. **Follow the 5S workflow**:
+   ```bash
+   # After completing S1, move to S2
+   ai-project-os s2
+   
+   # Then S3, S4, and finally S5
+   ai-project-os s3
+   ai-project-os s4
+   ai-project-os s5
+   ```
+
+4. **Check project status**:
+   ```bash
+   ai-project-os status
+   ```
+
+### For Non-Technical Users
+
+If you don't want to use the command line, check out our [Zero-Code Guide](docs/example-no-code.md) to use AI Project OS with just your AI tool.
+
 ## Status
 
 ⚠️ AI Project OS v2.5 is currently in **Spec-Frozen / Implementation-in-Progress** state.
@@ -33,6 +74,12 @@ AI Project OS enforces:
 
 No freeze, no code.  
 No audit, no ship.
+
+## What AI Project OS is NOT
+
+- ❌ Not an AI code quality checker
+- ❌ Not responsible for business logic correctness
+- ❌ Not a replacement for human review
 
 ## Why AI Project OS?
 
@@ -89,6 +136,14 @@ Every S5 task must include:
 
 No exception.
 
+## Approval Field
+
+Approval MUST be provided by a human reviewer. In audit logs:
+- AI may suggest content
+- Human reviewer must explicitly sign off
+
+AI self-approval is forbidden for compliance reasons.
+
 ## Who is this for?
 
 - Non-technical founders
@@ -96,52 +151,9 @@ No exception.
 - Teams tired of AI-generated mess
 - Anyone who wants AI to behave like a real engineer
 
-
-
 ## License
 
 MIT License
-
-## Quick Start
-
-### Installation
-
-```bash
-pip install ai-project-os-mcp
-```
-
-### Usage
-
-1. **Initialize a new project**:
-   ```bash
-   ai-project-os init my-project
-   cd my-project
-   ```
-
-2. **Start with S1 Scope stage**:
-   ```bash
-   ai-project-os s1
-   ```
-
-3. **Follow the 5S workflow**:
-   ```bash
-   # After completing S1, move to S2
-   ai-project-os s2
-   
-   # Then S3, S4, and finally S5
-   ai-project-os s3
-   ai-project-os s4
-   ai-project-os s5
-   ```
-
-4. **Check project status**:
-   ```bash
-   ai-project-os status
-   ```
-
-### For Non-Technical Users
-
-If you don't want to use the command line, check out our [Zero-Code Guide](docs/example-no-code.md) to use AI Project OS with just your AI tool.
 
 ## MCP Server Runtime Modes
 
@@ -169,6 +181,10 @@ We follow **Semantic Versioning**:
 
 - **Release**: Git tags trigger GitHub Actions for automatic PyPI publishing
 - **Rollback**: Never delete published versions, only release fix versions (e.g., v1.0.1)
+
+## LTS Support
+
+v2.5.x will maintain backward compatibility for governance schemas.
 
 ## Enterprise Edition Roadmap
 

@@ -1,7 +1,8 @@
 name: ai-project-os
-version: 1.0.0
+version: 2.5.0
 type: governance
 protocol: mcp
+mcp_version: "0.1"
 description: >
   Enterprise-grade AI Project Governance Engine enforcing 
   engineering workflow, audit, and stage control.
@@ -23,3 +24,11 @@ supported_clients:
   - Cursor
   - Trae
 license: MIT
+stability:
+  level: "stable"
+  guarantees:
+    - backward_compatibility
+    - audit_schema_frozen
+    - audit_schema_immutable
+    - stage_rules_immutable
+    - breaking_changes_semver_only
