@@ -163,3 +163,6 @@ class PolicyEngine:
     def get_active_policies(self) -> List[Dict[str, Any]]:
         """Get list of active policies"""
         return [policy.dict() for policy in self.policies if policy.enabled]
+
+
+__all__ = []

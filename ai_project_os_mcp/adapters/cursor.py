@@ -2,7 +2,8 @@
 Cursor适配器 - 适配Cursor AI
 """
 
-from ai_project_os_mcp.core import StateManager, RuleEngine
+from ai_project_os_mcp.core.state_manager import StateManager
+from ai_project_os_mcp.core.rule_engine import RuleEngine
 
 class CursorAdapter:
     """

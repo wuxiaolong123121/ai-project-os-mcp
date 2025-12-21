@@ -5,7 +5,8 @@ MCPServer - MCP Server Implementation
 import sys
 import json
 import asyncio
-from ai_project_os_mcp.core import StateManager, RuleEngine
+from ai_project_os_mcp.core.state_manager import StateManager
+from ai_project_os_mcp.core.rule_engine import RuleEngine
 from ai_project_os_mcp.config import config
 
 class MCPServer:

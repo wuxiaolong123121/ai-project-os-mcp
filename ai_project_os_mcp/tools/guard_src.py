@@ -2,7 +2,7 @@
 guard_src工具 - 验证是否允许修改src目录
 """
 
-from ai_project_os_mcp.core import RuleEngine
+from ai_project_os_mcp.core.rule_engine import RuleEngine
 from ai_project_os_mcp.config import config
 
 rule_engine = RuleEngine()

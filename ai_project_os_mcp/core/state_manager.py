@@ -236,10 +236,10 @@ class StateManager:
     def unfreeze(self, actor_id: str) -> bool:
         """
         Unfreeze the project
-        
+
         Args:
             actor_id: ID of the actor unfreezing the project
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
@@ -250,3 +250,6 @@ class StateManager:
         new_state.pop("freeze_at", None)
         new_state.pop("freeze_event_id", None)
         return self.save_state(new_state)
+
+
+__all__ = []

@@ -187,3 +187,6 @@ class RuleEngine:
             return True, "Pseudo-TDD assertion found"
         else:
             return False, "Missing Pseudo-TDD assertion"
+
+
+__all__ = []

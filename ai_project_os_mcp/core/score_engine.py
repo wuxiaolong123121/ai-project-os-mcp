@@ -165,3 +165,6 @@ class ScoreEngine:
         )
         
         return max(0, combined)
+
+
+__all__ = []

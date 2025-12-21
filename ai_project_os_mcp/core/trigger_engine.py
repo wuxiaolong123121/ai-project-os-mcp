@@ -221,3 +221,6 @@ class TriggerEngine:
     def remove_trigger(self, trigger_id: str):
         """Remove a trigger by ID"""
         self.triggers = [t for t in self.triggers if t.id != trigger_id]
+
+
+__all__ = []

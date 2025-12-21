@@ -78,7 +78,7 @@ def get_stats(state, payload):
         dict: 统计信息结果
     """
     # 加载当前状态
-    from ai_project_os_mcp.core import StateManager
+    from ai_project_os_mcp.core.state_manager import StateManager
     state_manager = StateManager(config.project_root)
     current_state = state_manager.load_state()
     

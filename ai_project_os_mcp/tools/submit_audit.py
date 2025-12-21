@@ -5,7 +5,7 @@ submit_audit工具 - 提交S5审计记录
 import os
 import subprocess
 from datetime import datetime
-from ai_project_os_mcp.core import RuleEngine
+from ai_project_os_mcp.core.rule_engine import RuleEngine
 from ai_project_os_mcp.config import config
 from ai_project_os_mcp.tools.audit_security import AuditSecurity
 

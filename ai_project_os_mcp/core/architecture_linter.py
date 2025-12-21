@@ -235,5 +235,8 @@ class ArchitectureLinter:
         # 分析项目代码
         source_dir = os.path.join(project_root, "ai_project_os_mcp")
         self.analyze_directory(source_dir)
-        
+
         return self.get_report()
+
+
+__all__ = []

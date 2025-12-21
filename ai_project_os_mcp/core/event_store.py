@@ -190,3 +190,6 @@ def get_event_store() -> EventStore:
     if _event_store is None:
         _event_store = InMemoryEventStore()
     return _event_store
+
+
+__all__ = []

@@ -51,3 +51,6 @@ class GovernanceEvent(BaseModel):
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+
+
+__all__ = []

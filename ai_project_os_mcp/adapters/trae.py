@@ -2,7 +2,8 @@
 Trae适配器 - 适配Trae多Agent环境
 """
 
-from ai_project_os_mcp.core import StateManager, RuleEngine
+from ai_project_os_mcp.core.state_manager import StateManager
+from ai_project_os_mcp.core.rule_engine import RuleEngine
 from ai_project_os_mcp.tools import get_stage, freeze_stage, guard_src, submit_audit
 
 class TraeAdapter:

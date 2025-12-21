@@ -478,3 +478,6 @@ class GovernanceEngine:
             violations.extend(policy_violations)
         
         return violations
+
+
+__all__ = ["GovernanceEngine"]

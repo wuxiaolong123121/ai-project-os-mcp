@@ -220,16 +220,19 @@ class SessionManager:
     def check_session_permission(self, session_id: str, action: str) -> bool:
         """
         检查 Session 是否有执行特定操作的权限
-        
+
         Args:
             session_id: Session ID
             action: 要执行的操作
-            
+
         Returns:
             bool: 有权限返回 True，否则返回 False
         """
         session = self.get_session(session_id)
         if not session:
             return False
-        
+
         return action in session["permissions"]
+
+
+__all__ = []

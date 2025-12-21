@@ -2,7 +2,7 @@
 Claude适配器 - 适配Claude AI
 """
 
-from ai_project_os_mcp.core import StateManager
+from ai_project_os_mcp.core.state_manager import StateManager
 from ai_project_os_mcp.tools import get_stage, freeze_stage, guard_src, submit_audit
 
 class ClaudeAdapter:

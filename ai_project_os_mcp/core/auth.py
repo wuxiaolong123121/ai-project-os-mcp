@@ -201,19 +201,22 @@ class AuthManager:
     def cleanup_expired_tokens(self) -> int:
         """
         清理过期 Token
-        
+
         Returns:
             int: 清理的 Token 数量
         """
         current_time = int(time.time())
         expired_tokens = []
-        
+
         for token, token_info in self.tokens.items():
             if current_time > token_info["expiry"]:
                 expired_tokens.append(token)
-        
+
         # 删除过期 Token
         for token in expired_tokens:
             del self.tokens[token]
-        
+
         return len(expired_tokens)
+
+
+__all__ = []
