@@ -8,20 +8,31 @@ Architecture Linter - 基于 AST 的架构合规检查引擎
 4. 生成合规报告
 """
 
+# Single Gate Architecture: Core modules are private and can only be used by GovernanceEngine
+# Private classes with underscore prefix enforce this pattern
+# Constructor validation ensures only GovernanceEngine can create instances
+
+
 import ast
 import os
 import yaml
 from typing import Dict, List, Set, Tuple
 
-class ArchitectureLinter:
+class _ArchitectureLinter:
     """
     架构合规检查引擎
     """
     
-    def __init__(self):
+    def __init__(self, caller):
         """
         初始化架构检查引擎
+        
+        Args:
+            caller: 调用者，必须是 GovernanceEngine 实例
         """
+        if caller.__class__.__name__ != "GovernanceEngine":
+            raise RuntimeError("Unauthorized access to ArchitectureLinter")
+        self.caller = caller
         self.architecture_config = None
         self.layer_dependencies = {}
         self.module_layers = {}

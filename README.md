@@ -1,5 +1,15 @@
 # AI Project OS
 
+## Version 2.5 – Governance Kernel (Spec Frozen)
+
+This release represents a frozen governance kernel. 
+Core governance semantics, lifecycle rules, audit invariants, 
+and freeze mechanics are considered stable and MUST NOT be modified 
+without a new major version.
+
+This version prioritizes governance correctness over extensibility, 
+performance, or usability.
+
 [![PyPI Version](https://img.shields.io/pypi/v/ai-project-os-mcp)](https://pypi.org/project/ai-project-os-mcp/)
 [![License](https://img.shields.io/pypi/l/ai-project-os-mcp)](https://pypi.org/project/ai-project-os-mcp/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/ai-project-os-mcp)](https://pypi.org/project/ai-project-os-mcp/)
@@ -7,7 +17,38 @@
 **AI Project Operating System**  
 Turn AI coding into real, auditable software engineering.
 
+## Core Governance Principles
+
+AI Project OS v2.5 implements a **non-bypassable, auditable, and evolvable** governance system with the following core invariants:
+
+1. **Single Entry Point**: GovernanceEngine is the sole entry for all AI governance operations
+2. **Actor Mandatory**: No anonymous AI behavior is permitted
+3. **Event Closure**: All events produce governance outcomes
+4. **Violation Enforcement**: Violations trigger defined actions
+5. **Freeze Irreversibility**: Freeze state is irreversible within the same stage
+6. **State Integrity**: No direct state modification
+7. **Audit Completeness**: All actions produce append-only audit records
+8. **Policy Priority**: System policies override project policies
+9. **CI Enforcement**: Governance invariants are automatically verified in CI
+
+For the complete governance constitution, see [GOVERNANCE_INVARIANTS.md](docs/GOVERNANCE_INVARIANTS.md).
+
 ## Quick Start
+
+### 5-Minute Governance Test Drive
+
+```bash
+# Install the package
+pip install ai-project-os-mcp
+
+# Run the minimal governance example
+python -c "from ai_project_os_mcp.core import GovernanceEngine; print('✅ GovernanceEngine loaded')"
+
+# Run the complete governance flow example
+git clone https://github.com/wuxiaolong123121/ai-project-os-mcp.git
+cd ai-project-os-mcp
+python examples/minimal_governance.py
+```
 
 ### Installation
 

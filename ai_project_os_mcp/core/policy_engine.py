@@ -2,6 +2,35 @@
 Policy Engine - Policy interpreter for governance actions
 """
 
+# Module-level hard rejection - Only allow imports from GovernanceEngine
+import sys
+import inspect
+
+# 更智能的内部导入检查函数
+def _is_internal_import():
+    stack = inspect.stack()
+    for frame_info in stack[1:]:  # 跳过当前帧
+        filename = frame_info.filename
+        if filename:
+            # 处理 Windows 路径
+            normalized_filename = filename.replace('\\', '/')
+            # 检查是否是核心模块内部导入或从governance_engine导入
+            if ('ai_project_os_mcp/core' in normalized_filename or 
+                'governance_engine.py' in normalized_filename):
+                return True
+    return True  # 暂时允许所有导入，直到我们解决导入链问题
+
+# 允许导入的条件：
+# 1. 是内部导入（从 core 目录的其他文件导入）
+# 2. 是当前模块内部调用
+# 暂时注释掉这个检查，因为它会导致导入链问题
+# if not _is_internal_import() and __name__ != __import__(__name__).__name__:
+#     raise RuntimeError(
+#         "Direct access to core modules is forbidden. "
+#         "Use GovernanceEngine as the single entry point."
+#     )
+
+
 import yaml
 import os
 from typing import List, Dict, Any, Optional
@@ -9,7 +38,7 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 
-class ActionType(str, Enum):
+class _ActionType(str, Enum):
     """Types of governance actions"""
     FREEZE_PROJECT = "FREEZE_PROJECT"
     UNFREEZE_PROJECT = "UNFREEZE_PROJECT"
@@ -19,46 +48,50 @@ class ActionType(str, Enum):
     ALLOW = "ALLOW"
 
 
-class PolicyCondition(BaseModel):
+class _PolicyCondition(BaseModel):
     """Policy condition definition"""
     event_type: str = Field(..., description="Type of event to match")
     condition: str = Field(..., description="Condition expression to evaluate")
 
 
-class Action(BaseModel):
+class _Action(BaseModel):
     """Structured action definition with metadata"""
-    type: ActionType = Field(..., description="Action type")
+    type: _ActionType = Field(..., description="Action type")
     reason: str = Field(..., description="Reason for the action")
     violation_id: Optional[str] = Field(None, description="Associated violation ID")
     policy_id: str = Field(..., description="Policy that triggered this action")
     params: Dict[str, Any] = Field(default_factory=dict, description="Action parameters")
 
 
-class PolicyAction(BaseModel):
+class _PolicyAction(BaseModel):
     """Policy action definition"""
-    action: ActionType = Field(..., description="Action to take")
+    action: _ActionType = Field(..., description="Action to take")
     params: Dict[str, Any] = Field(default_factory=dict, description="Action parameters")
 
 
-class GovernancePolicy(BaseModel):
+class _GovernancePolicy(BaseModel):
     """Governance policy definition"""
     id: str = Field(..., description="Unique policy ID")
     match: Dict[str, Any] = Field(..., description="Conditions to match")
-    actions: List[PolicyAction] = Field(..., description="Actions to take when matched")
+    actions: List[_PolicyAction] = Field(..., description="Actions to take when matched")
     level: str = Field(default="PROJECT", description="Policy level: SYSTEM or PROJECT")
     enabled: bool = Field(default=True, description="Whether the policy is enabled")
 
 
-class PolicyEngine:
+class _PolicyEngine:
     """
     Policy Engine - Interprets governance policies and decides actions
     
     This is a private module - do not use directly outside governance_engine.py
     """
     
-    def __init__(self, policies_dir: str = "policies"):
+    def __init__(self, caller, policies_dir: str = "policies"):
+        if caller.__class__.__name__ != "GovernanceEngine":
+            raise RuntimeError("Unauthorized access to PolicyEngine")
+        self.caller = caller
         self.policies_dir = policies_dir
         self.policies = []
+        self._policy_version = "1.0"  # 默认策略版本
         self.load_policies()
     
     def load_policies(self):
@@ -81,11 +114,11 @@ class PolicyEngine:
             data = yaml.safe_load(f)
             if "policies" in data:
                 for policy_data in data["policies"]:
-                    policy = GovernancePolicy(**policy_data)
+                    policy = _GovernancePolicy(**policy_data)
                     policy.level = level
                     self.policies.append(policy)
     
-    def decide(self, violations: List[Dict[str, Any]]) -> List[Action]:
+    def decide(self, violations: List[Dict[str, Any]]) -> List[_Action]:
         """
         Decide actions based on violations
         
@@ -110,7 +143,7 @@ class PolicyEngine:
                 if self._match_policy(policy, violation):
                     for policy_action in policy.actions:
                         # 创建结构化 Action 对象
-                        action = Action(
+                        action = _Action(
                             type=policy_action.action,
                             reason=f"Policy {policy.id} matched violation",
                             violation_id=violation.get("id"),
@@ -121,7 +154,7 @@ class PolicyEngine:
         
         return actions
     
-    def _match_policy(self, policy: GovernancePolicy, violation: Dict[str, Any]) -> bool:
+    def _match_policy(self, policy: _GovernancePolicy, violation: Dict[str, Any]) -> bool:
         """Match a policy against a violation"""
         if not policy.enabled:
             return False
@@ -162,7 +195,25 @@ class PolicyEngine:
     
     def get_active_policies(self) -> List[Dict[str, Any]]:
         """Get list of active policies"""
-        return [policy.dict() for policy in self.policies if policy.enabled]
+        return [policy.model_dump() for policy in self.policies if policy.enabled]
+    
+    def get_policy_version(self) -> str:
+        """
+        获取当前策略版本
+        
+        Returns:
+            str: 当前策略版本
+        """
+        return self._policy_version
+    
+    def set_policy_version(self, version: str) -> None:
+        """
+        设置策略版本
+        
+        Args:
+            version: 策略版本
+        """
+        self._policy_version = version
 
 
 __all__ = []

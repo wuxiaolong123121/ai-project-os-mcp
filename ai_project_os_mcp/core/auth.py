@@ -12,15 +12,22 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
 
-class AuthManager:
+class _AuthManager:
     """
     认证管理类，负责 Token 生成、验证和权限管理
     """
     
-    def __init__(self):
+    def __init__(self, caller):
         """
         初始化认证管理器
+        
+        Args:
+            caller: 调用者，必须是 GovernanceEngine 实例
         """
+        if caller.__class__.__name__ != "GovernanceEngine":
+            raise RuntimeError("Unauthorized access to AuthManager")
+        self.caller = caller
+        
         # 存储 Agent 信息
         self.agents = {
             "planner": {
@@ -201,21 +208,21 @@ class AuthManager:
     def cleanup_expired_tokens(self) -> int:
         """
         清理过期 Token
-
+        
         Returns:
             int: 清理的 Token 数量
         """
         current_time = int(time.time())
         expired_tokens = []
-
+        
         for token, token_info in self.tokens.items():
             if current_time > token_info["expiry"]:
                 expired_tokens.append(token)
-
+        
         # 删除过期 Token
         for token in expired_tokens:
             del self.tokens[token]
-
+        
         return len(expired_tokens)
 
 

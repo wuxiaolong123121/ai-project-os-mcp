@@ -8,20 +8,35 @@ Session Manager - 会话管理模块
 4. Session 过期和清理
 """
 
+# Note: Module-level hard rejection removed to avoid import issues
+# Instead, we use private classes and caller verification to enforce Single Gate Architecture
+
+# Single Gate Architecture: Core modules are private and can only be used by GovernanceEngine
+# Private classes with underscore prefix enforce this pattern
+# Constructor validation ensures only GovernanceEngine can create instances
+
+
 import time
 import json
 from typing import Dict, Optional, List
 from datetime import datetime
 
-class SessionManager:
+class _SessionManager:
     """
     会话管理类，负责 Session 创建、管理和操作日志记录
     """
     
-    def __init__(self):
+    def __init__(self, caller):
         """
         初始化会话管理器
+        
+        Args:
+            caller: 调用者，必须是 GovernanceEngine 实例
         """
+        if caller.__class__.__name__ != "GovernanceEngine":
+            raise RuntimeError("Unauthorized access to SessionManager")
+        self.caller = caller
+        
         # 存储 Session 信息
         self.sessions = {}
         

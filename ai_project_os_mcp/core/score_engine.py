@@ -2,21 +2,45 @@
 Score Engine - Governance scoring with irreversible decay
 """
 
+# Module-level hard rejection - Only allow imports from GovernanceEngine
+import sys
+import inspect
+
+# 更严格的内部导入检查函数
+def _is_internal_import():
+    stack = inspect.stack()
+    for frame_info in stack[1:]:  # 跳过当前帧
+        filename = frame_info.filename
+        if filename:
+            # 处理 Windows 路径
+            normalized_filename = filename.replace('\\', '/')
+            # 检查是否是核心模块内部导入
+            if 'ai_project_os_mcp/core' in normalized_filename:
+                return True
+    return False
+
+# 仅允许 GovernanceEngine 导入核心模块
+if not _is_internal_import():
+    raise RuntimeError(
+        "Direct access to core modules is forbidden. "
+        "Use GovernanceEngine as the single entry point."
+    )
+
 from typing import Dict, Any, List
 from enum import Enum
 
-from .events import GovernanceEvent, EventType
-from .violation import ViolationLevel
+from .events import _GovernanceEvent as GovernanceEvent, _EventType as EventType
+from .violation import _ViolationLevel as ViolationLevel
 
 
-class ScoreComponent(str, Enum):
+class _ScoreComponent(str, Enum):
     """Score component types"""
     GOVERNANCE = "governance"
     AUDIT_COVERAGE = "audit_coverage"
     COMPLIANCE = "compliance"
 
 
-class ScoreEngine:
+class _ScoreEngine:
     """
     Score Engine - Calculates governance score with irreversible decay
     
@@ -29,7 +53,10 @@ class ScoreEngine:
     - Detailed breakdown
     """
     
-    def __init__(self):
+    def __init__(self, caller):
+        if caller.__class__.__name__ != "GovernanceEngine":
+            raise RuntimeError("Unauthorized access to ScoreEngine")
+        self.caller = caller
         self.base_score = 100
         self.score_decay = {
             ViolationLevel.CRITICAL: -30,  # Irreversible, only reset by stage change
@@ -149,9 +176,9 @@ class ScoreEngine:
         """Calculate combined score from multiple components"""
         # Weighted average of score components
         weights = {
-            ScoreComponent.GOVERNANCE: 0.6,
-            ScoreComponent.AUDIT_COVERAGE: 0.2,
-            ScoreComponent.COMPLIANCE: 0.2
+            _ScoreComponent.GOVERNANCE: 0.6,
+            _ScoreComponent.AUDIT_COVERAGE: 0.2,
+            _ScoreComponent.COMPLIANCE: 0.2
         }
         
         if not scores:
@@ -159,9 +186,9 @@ class ScoreEngine:
         
         latest_score = scores[-1]
         combined = (
-            latest_score.get("governance_score", self.base_score) * weights[ScoreComponent.GOVERNANCE] +
-            latest_score.get("audit_coverage", 0) * weights[ScoreComponent.AUDIT_COVERAGE] +
-            latest_score.get("compliance_score", 0) * weights[ScoreComponent.COMPLIANCE]
+            latest_score.get("governance_score", self.base_score) * weights[_ScoreComponent.GOVERNANCE] +
+            latest_score.get("audit_coverage", 0) * weights[_ScoreComponent.AUDIT_COVERAGE] +
+            latest_score.get("compliance_score", 0) * weights[_ScoreComponent.COMPLIANCE]
         )
         
         return max(0, combined)

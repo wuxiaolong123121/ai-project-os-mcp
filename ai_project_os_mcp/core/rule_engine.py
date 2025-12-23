@@ -2,17 +2,48 @@
 规则引擎 - 5S + S5 稳定性规则
 """
 
+# Module-level hard rejection - Only allow internal imports
+import sys
+import inspect
+
+# 更严格的内部导入检查函数
+def _is_internal_import():
+    stack = inspect.stack()
+    for frame_info in stack[1:]:  # 跳过当前帧
+        filename = frame_info.filename
+        if filename:
+            # 处理 Windows 路径
+            normalized_filename = filename.replace('\\', '/')
+            # 检查是否是核心模块内部导入
+            if 'ai_project_os_mcp/core' in normalized_filename:
+                return True
+    return False
+
+# 仅允许 GovernanceEngine 导入核心模块
+if not _is_internal_import():
+    raise RuntimeError(
+        "Direct access to core modules is forbidden. "
+        "Use GovernanceEngine as the single entry point."
+    )
+
 VALID_STAGES = ["S1", "S2", "S3", "S4", "S5"]
 
-class RuleEngine:
+class _RuleEngine:
     """
     规则引擎，负责执行AI Project OS的所有工程规则
     """
     
-    def __init__(self):
+    def __init__(self, caller):
         """
         初始化规则引擎
+        
+        Args:
+            caller: 调用者，必须是 GovernanceEngine 实例
         """
+        if caller.__class__.__name__ != "GovernanceEngine":
+            raise RuntimeError("Unauthorized access to RuleEngine")
+        self.caller = caller
+        
         self.rules = {
             "R1": "AI MUST query current stage before any action",
             "R2": "AI MUST NOT generate code unless stage == S5",
